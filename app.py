@@ -30,8 +30,7 @@ if analyze:
         response = analyze_meal(meal)
 
         # Display raw response for debugging
-        st.write("Gemini Response:")
-        st.write(response)
+        
 
         # Remove markdown formatting
         response = response.replace("```json", "").replace("```", "").strip()

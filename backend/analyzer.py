@@ -13,6 +13,7 @@ genai.configure(api_key=api_key)
 model = genai.GenerativeModel("gemini-1.5-flash")
 
 
+
 def analyze_meal(meal):
     try:
         prompt = PROMPT.format(meal=meal)
@@ -37,6 +38,8 @@ def analyze_meal(meal):
         return response.text
 
     except Exception as e:
+        print("ERROR:", e)
+
         return json.dumps({
             "calories": 0,
             "protein": 0,
@@ -44,7 +47,7 @@ def analyze_meal(meal):
             "fat": 0,
             "health_score": 0,
             "suggestions": [
-                f"Error: {str(e)}"
+                str(e)
             ],
             "alternatives": [
                 "Please try again later."

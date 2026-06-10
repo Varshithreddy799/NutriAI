@@ -1,5 +1,8 @@
-import plotly.express as px
 import streamlit as st
+import plotly.express as px
+import json
+
+from backend.analyzer import analyze_meal
 
 # Page configuration
 st.set_page_config(
@@ -22,25 +25,19 @@ analyze = st.button("Analyze Meal")
 
 if analyze:
 
-    result = {
-        "calories": 420,
-        "protein": 16,
-        "carbs": 55,
-        "fat": 9,
-        "health_score": 8,
-        "suggestions": [
-            "Good breakfast choice",
-            "Add nuts for healthy fats",
-            "Increase protein slightly"
-        ],
-        "alternatives": [
-            "Add boiled eggs for more protein",
-            "Add nuts for healthy fats"
-        ]
-    }
+    # Get AI response
+    response = analyze_meal(meal)
 
-    # Display results
-    st.subheader("Nutrition Facts")
+    # Remove markdown formatting from Gemini response
+    response = response.replace("```json", "").replace("```", "").strip()
+
+    # Convert JSON string to dictionary
+    result = json.loads(response)
+
+    # ------------------------
+    # Nutrition Facts
+    # ------------------------
+    st.subheader("🍽️ Nutrition Facts")
 
     col1, col2 = st.columns(2)
 
@@ -52,24 +49,41 @@ if analyze:
         st.metric("Carbohydrates", f"{result['carbs']} g")
         st.metric("Fat", f"{result['fat']} g")
 
-    # Health score
-    st.subheader("Health Score")
-    st.progress(result["health_score"]/10)
-    st.success(f"⭐⭐⭐⭐ {result['health_score']}/10 Healthy Meal")
+    # ------------------------
+    # Health Score
+    # ------------------------
+    st.subheader("❤️ Health Score")
 
+    score = result["health_score"]
+
+    st.progress(score / 10)
+
+    if score >= 8:
+        st.success(f"⭐⭐⭐⭐ {score}/10 Healthy Meal")
+    elif score >= 5:
+        st.warning(f"⭐⭐⭐ {score}/10 Moderate Meal")
+    else:
+        st.error(f"⭐⭐ {score}/10 Needs Improvement")
+
+    # ------------------------
     # Suggestions
-    st.subheader("Suggestions")
+    # ------------------------
+    st.subheader("💡 Suggestions")
 
     for suggestion in result["suggestions"]:
         st.write("✔", suggestion)
 
+    # ------------------------
     # Better Alternatives
-    st.subheader("Better Alternatives")
+    # ------------------------
+    st.subheader("🥗 Better Alternatives")
 
     for alt in result["alternatives"]:
-        st.write("🥗", alt)
+        st.write("👉", alt)
 
+    # ------------------------
     # Pie Chart
+    # ------------------------
     st.subheader("📊 Macronutrient Distribution")
 
     labels = ["Protein", "Carbohydrates", "Fat"]
@@ -87,10 +101,11 @@ if analyze:
     )
 
     st.plotly_chart(fig)
-    # Final Verdict
-    st.subheader("🎯 Final Verdict")
 
-    score = result["health_score"]
+    # ------------------------
+    # Final Verdict
+    # ------------------------
+    st.subheader("🎯 Final Verdict")
 
     if score >= 8:
         st.success("⭐⭐⭐⭐ Healthy Meal")
@@ -99,10 +114,20 @@ if analyze:
     else:
         st.error("⭐⭐ Needs Improvement")
 
-# Meal Summary
-    st.subheader("📝 Meal Summary") 
+    # ------------------------
+    # Meal Summary
+    # ------------------------
+    st.subheader("📝 Meal Summary")
 
     st.info(
-        "Balanced meal with moderate carbohydrates and good protein content. "
-        "Consider adding healthy fats and slightly increasing protein."
+        f"This meal provides approximately {result['calories']} kcal with "
+        f"{result['protein']} g protein, {result['carbs']} g carbohydrates "
+        f"and {result['fat']} g fat."
     )
+
+# Footer
+st.markdown("---")
+st.success(
+    "🏆 Team Tech_Titans | NutriAI – AI Food Nutrition Analyzer\n\n"
+    "⚡ Powered by Gemini AI"
+)

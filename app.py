@@ -142,6 +142,6 @@ if analyze:
 # Footer
 st.markdown("---")
 st.success(
-    "🏆 Team Tech_Titans | NutriAI – AI Food Nutrition Analyzer\n\n"
+    "NutriAI – AI Food Nutrition Analyzer\n\n"
     "⚡ Powered by Gemini AI"
 )

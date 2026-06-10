@@ -7,8 +7,6 @@ load_dotenv()
 
 api_key = os.getenv("GEMINI_API_KEY")
 
-print("API Key loaded:", api_key is not None)
-
 genai.configure(api_key=api_key)
 
 model = genai.GenerativeModel("gemini-2.5-flash")
@@ -24,8 +22,39 @@ def analyze_meal(meal):
 
         print("Response received!")
 
+        # Make sure Gemini actually returned text
+        if not hasattr(response, "text") or response.text is None:
+            return """
+            {
+                "calories": 0,
+                "protein": 0,
+                "carbs": 0,
+                "fat": 0,
+                "health_score": 0,
+                "suggestions": [
+                    "Gemini returned an empty response. Please try again."
+                ],
+                "alternatives": [
+                    "Try again after a few seconds."
+                ]
+            }
+            """
+
         return response.text
 
     except Exception as e:
-        print("ERROR:", e)
-        return None
+        return f"""
+        {{
+            "calories": 0,
+            "protein": 0,
+            "carbs": 0,
+            "fat": 0,
+            "health_score": 0,
+            "suggestions": [
+                "Error: {str(e)}"
+            ],
+            "alternatives": [
+                "Please try again later."
+            ]
+        }}
+        """

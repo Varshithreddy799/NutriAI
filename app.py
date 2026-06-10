@@ -26,19 +26,27 @@ analyze = st.button("Analyze Meal")
 if analyze:
 
     try:
-        # Get response from Gemini
+        # Get AI response
         response = analyze_meal(meal)
 
-        # Display raw response for debugging
-        
+        if response is None:
+            st.error("Gemini API returned no response. Please try again.")
+            st.stop()
 
         # Remove markdown formatting
         response = response.replace("```json", "").replace("```", "").strip()
 
         # Convert JSON string to dictionary
-        result = json.loads(response)
+        try:
+            result = json.loads(response)
+        except Exception:
+            st.error("Gemini returned invalid JSON.")
+            st.write(response)
+            st.stop()
 
+        # ------------------------
         # Nutrition Facts
+        # ------------------------
         st.subheader("🍽️ Nutrition Facts")
 
         col1, col2 = st.columns(2)
@@ -51,7 +59,9 @@ if analyze:
             st.metric("Carbohydrates", f"{result['carbs']} g")
             st.metric("Fat", f"{result['fat']} g")
 
+        # ------------------------
         # Health Score
+        # ------------------------
         st.subheader("❤️ Health Score")
 
         score = result["health_score"]
@@ -65,19 +75,25 @@ if analyze:
         else:
             st.error(f"⭐⭐ {score}/10 Needs Improvement")
 
+        # ------------------------
         # Suggestions
+        # ------------------------
         st.subheader("💡 Suggestions")
 
         for suggestion in result["suggestions"]:
             st.write("✔", suggestion)
 
+        # ------------------------
         # Better Alternatives
+        # ------------------------
         st.subheader("🥗 Better Alternatives")
 
         for alt in result["alternatives"]:
             st.write("👉", alt)
 
+        # ------------------------
         # Pie Chart
+        # ------------------------
         st.subheader("📊 Macronutrient Distribution")
 
         labels = ["Protein", "Carbohydrates", "Fat"]
@@ -96,7 +112,9 @@ if analyze:
 
         st.plotly_chart(fig)
 
+        # ------------------------
         # Final Verdict
+        # ------------------------
         st.subheader("🎯 Final Verdict")
 
         if score >= 8:
@@ -106,12 +124,15 @@ if analyze:
         else:
             st.error("⭐⭐ Needs Improvement")
 
+        # ------------------------
         # Meal Summary
+        # ------------------------
         st.subheader("📝 Meal Summary")
 
         st.info(
             f"This meal provides approximately {result['calories']} kcal with "
-            f"{result['protein']} g protein, {result['carbs']} g carbohydrates "
+            f"{result['protein']} g protein, "
+            f"{result['carbs']} g carbohydrates "
             f"and {result['fat']} g fat."
         )
 

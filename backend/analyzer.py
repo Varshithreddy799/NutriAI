@@ -1,4 +1,5 @@
 import os
+import json
 import google.generativeai as genai
 from dotenv import load_dotenv
 from backend.prompt import PROMPT
@@ -9,52 +10,43 @@ api_key = os.getenv("GEMINI_API_KEY")
 
 genai.configure(api_key=api_key)
 
-model = genai.GenerativeModel("gemini-2.5-flash")
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 
 def analyze_meal(meal):
     try:
         prompt = PROMPT.format(meal=meal)
 
-        print("Sending request to Gemini...")
-
         response = model.generate_content(prompt)
 
-        print("Response received!")
-
-        # Make sure Gemini actually returned text
         if not hasattr(response, "text") or response.text is None:
-            return """
-            {
+            return json.dumps({
                 "calories": 0,
                 "protein": 0,
                 "carbs": 0,
                 "fat": 0,
                 "health_score": 0,
                 "suggestions": [
-                    "Gemini returned an empty response. Please try again."
+                    "Gemini returned an empty response."
                 ],
                 "alternatives": [
-                    "Try again after a few seconds."
+                    "Please try again after a few seconds."
                 ]
-            }
-            """
+            })
 
         return response.text
 
     except Exception as e:
-        return f"""
-        {{
+        return json.dumps({
             "calories": 0,
             "protein": 0,
             "carbs": 0,
             "fat": 0,
             "health_score": 0,
             "suggestions": [
-                "Error: {str(e)}"
+                f"Error: {str(e)}"
             ],
             "alternatives": [
                 "Please try again later."
             ]
-        }}
-        """
+        })

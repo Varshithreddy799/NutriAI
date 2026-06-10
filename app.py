@@ -25,105 +25,99 @@ analyze = st.button("Analyze Meal")
 
 if analyze:
 
-    # Get AI response
-    response = analyze_meal(meal)
+    try:
+        # Get response from Gemini
+        response = analyze_meal(meal)
 
-    # Remove markdown formatting from Gemini response
-    response = response.replace("```json", "").replace("```", "").strip()
+        # Display raw response for debugging
+        st.write("Gemini Response:")
+        st.write(response)
 
-    # Convert JSON string to dictionary
-    result = json.loads(response)
+        # Remove markdown formatting
+        response = response.replace("```json", "").replace("```", "").strip()
 
-    # ------------------------
-    # Nutrition Facts
-    # ------------------------
-    st.subheader("🍽️ Nutrition Facts")
+        # Convert JSON string to dictionary
+        result = json.loads(response)
 
-    col1, col2 = st.columns(2)
+        # Nutrition Facts
+        st.subheader("🍽️ Nutrition Facts")
 
-    with col1:
-        st.metric("Calories", f"{result['calories']} kcal")
-        st.metric("Protein", f"{result['protein']} g")
+        col1, col2 = st.columns(2)
 
-    with col2:
-        st.metric("Carbohydrates", f"{result['carbs']} g")
-        st.metric("Fat", f"{result['fat']} g")
+        with col1:
+            st.metric("Calories", f"{result['calories']} kcal")
+            st.metric("Protein", f"{result['protein']} g")
 
-    # ------------------------
-    # Health Score
-    # ------------------------
-    st.subheader("❤️ Health Score")
+        with col2:
+            st.metric("Carbohydrates", f"{result['carbs']} g")
+            st.metric("Fat", f"{result['fat']} g")
 
-    score = result["health_score"]
+        # Health Score
+        st.subheader("❤️ Health Score")
 
-    st.progress(score / 10)
+        score = result["health_score"]
 
-    if score >= 8:
-        st.success(f"⭐⭐⭐⭐ {score}/10 Healthy Meal")
-    elif score >= 5:
-        st.warning(f"⭐⭐⭐ {score}/10 Moderate Meal")
-    else:
-        st.error(f"⭐⭐ {score}/10 Needs Improvement")
+        st.progress(score / 10)
 
-    # ------------------------
-    # Suggestions
-    # ------------------------
-    st.subheader("💡 Suggestions")
+        if score >= 8:
+            st.success(f"⭐⭐⭐⭐ {score}/10 Healthy Meal")
+        elif score >= 5:
+            st.warning(f"⭐⭐⭐ {score}/10 Moderate Meal")
+        else:
+            st.error(f"⭐⭐ {score}/10 Needs Improvement")
 
-    for suggestion in result["suggestions"]:
-        st.write("✔", suggestion)
+        # Suggestions
+        st.subheader("💡 Suggestions")
 
-    # ------------------------
-    # Better Alternatives
-    # ------------------------
-    st.subheader("🥗 Better Alternatives")
+        for suggestion in result["suggestions"]:
+            st.write("✔", suggestion)
 
-    for alt in result["alternatives"]:
-        st.write("👉", alt)
+        # Better Alternatives
+        st.subheader("🥗 Better Alternatives")
 
-    # ------------------------
-    # Pie Chart
-    # ------------------------
-    st.subheader("📊 Macronutrient Distribution")
+        for alt in result["alternatives"]:
+            st.write("👉", alt)
 
-    labels = ["Protein", "Carbohydrates", "Fat"]
+        # Pie Chart
+        st.subheader("📊 Macronutrient Distribution")
 
-    values = [
-        result["protein"],
-        result["carbs"],
-        result["fat"]
-    ]
+        labels = ["Protein", "Carbohydrates", "Fat"]
 
-    fig = px.pie(
-        values=values,
-        names=labels,
-        title="Macronutrient Breakdown"
-    )
+        values = [
+            result["protein"],
+            result["carbs"],
+            result["fat"]
+        ]
 
-    st.plotly_chart(fig)
+        fig = px.pie(
+            values=values,
+            names=labels,
+            title="Macronutrient Breakdown"
+        )
 
-    # ------------------------
-    # Final Verdict
-    # ------------------------
-    st.subheader("🎯 Final Verdict")
+        st.plotly_chart(fig)
 
-    if score >= 8:
-        st.success("⭐⭐⭐⭐ Healthy Meal")
-    elif score >= 5:
-        st.warning("⭐⭐⭐ Moderate Meal")
-    else:
-        st.error("⭐⭐ Needs Improvement")
+        # Final Verdict
+        st.subheader("🎯 Final Verdict")
 
-    # ------------------------
-    # Meal Summary
-    # ------------------------
-    st.subheader("📝 Meal Summary")
+        if score >= 8:
+            st.success("⭐⭐⭐⭐ Healthy Meal")
+        elif score >= 5:
+            st.warning("⭐⭐⭐ Moderate Meal")
+        else:
+            st.error("⭐⭐ Needs Improvement")
 
-    st.info(
-        f"This meal provides approximately {result['calories']} kcal with "
-        f"{result['protein']} g protein, {result['carbs']} g carbohydrates "
-        f"and {result['fat']} g fat."
-    )
+        # Meal Summary
+        st.subheader("📝 Meal Summary")
+
+        st.info(
+            f"This meal provides approximately {result['calories']} kcal with "
+            f"{result['protein']} g protein, {result['carbs']} g carbohydrates "
+            f"and {result['fat']} g fat."
+        )
+
+    except Exception as e:
+        st.error(f"Error: {e}")
 
 # Footer
 st.markdown("---")

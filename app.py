@@ -1,147 +1,94 @@
 import streamlit as st
-import plotly.express as px
-import json
-
 from backend.analyzer import analyze_meal
+from frontend.charts import nutrient_chart
 
-# Page configuration
 st.set_page_config(
     page_title="NutriAI",
     page_icon="🥗",
     layout="wide"
 )
 
-# Title
-st.title("🥗 NutriAI – AI Food Nutrition Analyzer")
+st.title("🥗 NutriAI - AI Food Nutrition Analyzer")
 
-# Input section
 meal = st.text_area(
     "Enter your meal",
-    placeholder="Example: 2 idlis, 1 banana, 1 glass milk"
+    "2 idlis, 1 banana, 1 glass milk"
 )
 
-# Analyze button
-analyze = st.button("Analyze Meal")
-
-if analyze:
-
-    try:
-        # Get AI response
-        response = analyze_meal(meal)
-
-        if response is None:
-            st.error("Gemini API returned no response. Please try again.")
-            st.stop()
-
-        # Remove markdown formatting
-        response = response.replace("```json", "").replace("```", "").strip()
-
-        # Convert JSON string to dictionary
-        try:
-            result = json.loads(response)
-        except Exception:
-            st.error("Gemini returned invalid JSON.")
-            st.write(response)
-            st.stop()
-
-        # ------------------------
-        # Nutrition Facts
-        # ------------------------
-        st.subheader("🍽️ Nutrition Facts")
-
-        col1, col2 = st.columns(2)
-
-        with col1:
-            st.metric("Calories", f"{result['calories']} kcal")
-            st.metric("Protein", f"{result['protein']} g")
-
-        with col2:
-            st.metric("Carbohydrates", f"{result['carbs']} g")
-            st.metric("Fat", f"{result['fat']} g")
-
-        # ------------------------
-        # Health Score
-        # ------------------------
-        st.subheader("❤️ Health Score")
-
-        score = result["health_score"]
-
-        st.progress(score / 10)
-
-        if score >= 8:
-            st.success(f"⭐⭐⭐⭐ {score}/10 Healthy Meal")
-        elif score >= 5:
-            st.warning(f"⭐⭐⭐ {score}/10 Moderate Meal")
-        else:
-            st.error(f"⭐⭐ {score}/10 Needs Improvement")
-
-        # ------------------------
-        # Suggestions
-        # ------------------------
-        st.subheader("💡 Suggestions")
-
-        for suggestion in result["suggestions"]:
-            st.write("✔", suggestion)
-
-        # ------------------------
-        # Better Alternatives
-        # ------------------------
-        st.subheader("🥗 Better Alternatives")
-
-        for alt in result["alternatives"]:
-            st.write("👉", alt)
-
-        # ------------------------
-        # Pie Chart
-        # ------------------------
-        st.subheader("📊 Macronutrient Distribution")
-
-        labels = ["Protein", "Carbohydrates", "Fat"]
-
-        values = [
-            result["protein"],
-            result["carbs"],
-            result["fat"]
-        ]
-
-        fig = px.pie(
-            values=values,
-            names=labels,
-            title="Macronutrient Breakdown"
-        )
-
-        st.plotly_chart(fig)
-
-        # ------------------------
-        # Final Verdict
-        # ------------------------
-        st.subheader("🎯 Final Verdict")
-
-        if score >= 8:
-            st.success("⭐⭐⭐⭐ Healthy Meal")
-        elif score >= 5:
-            st.warning("⭐⭐⭐ Moderate Meal")
-        else:
-            st.error("⭐⭐ Needs Improvement")
-
-        # ------------------------
-        # Meal Summary
-        # ------------------------
-        st.subheader("📝 Meal Summary")
-
-        st.info(
-            f"This meal provides approximately {result['calories']} kcal with "
-            f"{result['protein']} g protein, "
-            f"{result['carbs']} g carbohydrates "
-            f"and {result['fat']} g fat."
-        )
-
-    except Exception as e:
-        st.error(f"Error: {e}")
-
-# Footer
-st.markdown("---")
-st.success(
-    "NutriAI – AI Food Nutrition Analyzer\n\n"
-    "⚡ Powered by Gemini AI"
+provider = st.radio(
+    "Choose AI Provider",
+    [
+        "Ollama (Local AI)",
+        "Gemini API (BYOK)"
+    ]
 )
+
+api_key = None
+
+if provider == "Gemini API (BYOK)":
+    api_key = st.text_input(
+        "Enter Gemini API Key",
+        type="password"
+    )
+
+if st.button("Analyze Meal"):
+
+    result = analyze_meal(
+        meal,
+        provider,
+        api_key
+    )
+
+    st.header("Nutrition Facts")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.metric(
+            "Calories",
+            f"{result['calories']} kcal"
+        )
+
+        st.metric(
+            "Protein",
+            f"{result['protein']} g"
+        )
+
+    with col2:
+        st.metric(
+            "Carbs",
+            f"{result['carbs']} g"
+        )
+
+        st.metric(
+            "Fat",
+            f"{result['fat']} g"
+        )
+
+    st.header("Health Score")
+
+    score = result["health_score"]
+
+    st.progress(score / 10)
+
+    if score >= 8:
+        st.success(f"⭐⭐⭐⭐⭐ {score}/10 Healthy Meal")
+    elif score >= 5:
+        st.warning(f"⭐⭐⭐⭐ {score}/10 Moderate Meal")
+    else:
+        st.error(f"⭐⭐ {score}/10 Unhealthy Meal")
+
+    st.header("Suggestions")
+
+    for tip in result["suggestions"]:
+        st.write("✔", tip)
+
+    st.header("Better Alternatives")
+
+    for alt in result["alternatives"]:
+        st.write("🥗", alt)
+
+    st.plotly_chart(
+        nutrient_chart(result),
+        use_container_width=True
+    )

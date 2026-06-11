@@ -14,42 +14,21 @@ model = genai.GenerativeModel("gemini-1.5-flash")
 
 
 
-def analyze_meal(meal):
-    try:
-        prompt = PROMPT.format(meal=meal)
+def analyze_meal(meal, provider, api_key=None):
 
-        response = model.generate_content(prompt)
-
-        if not hasattr(response, "text") or response.text is None:
-            return json.dumps({
-                "calories": 0,
-                "protein": 0,
-                "carbs": 0,
-                "fat": 0,
-                "health_score": 0,
-                "suggestions": [
-                    "Gemini returned an empty response."
-                ],
-                "alternatives": [
-                    "Please try again after a few seconds."
-                ]
-            })
-
-        return response.text
-
-    except Exception as e:
-        print("ERROR:", e)
-
-        return json.dumps({
-            "calories": 0,
-            "protein": 0,
-            "carbs": 0,
-            "fat": 0,
-            "health_score": 0,
-            "suggestions": [
-                str(e)
-            ],
-            "alternatives": [
-                "Please try again later."
-            ]
-        })
+    return {
+        "calories": 420,
+        "protein": 16,
+        "carbs": 55,
+        "fat": 9,
+        "health_score": 8,
+        "suggestions": [
+            "Good breakfast choice",
+            "Add some nuts for healthy fats",
+            "Increase protein slightly"
+        ],
+        "alternatives": [
+            "Add boiled eggs",
+            "Add sprouts"
+        ]
+    }

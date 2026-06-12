@@ -1,21 +1,27 @@
 PROMPT = """
 You are a nutrition expert.
 
-Analyze the following meal:
+Analyze this meal:
 
 {meal}
 
-Provide:
+Estimate:
 
-1. Total calories (kcal)
-2. Protein (grams)
-3. Carbohydrates (grams)
-4. Fat (grams)
+1. Calories (kcal)
+2. Protein (g)
+3. Carbohydrates (g)
+4. Fat (g)
 5. Health score out of 10
-6. Three suggestions for improvement
-7. Two healthier alternatives
+6. Three suggestions
+7. Two better alternatives
 
-Return ONLY JSON in the following format:
+Return ONLY a JSON object.
+
+Do not include explanations.
+Do not include markdown.
+Do not include ```json.
+
+Use exactly this format:
 
 {{
     "calories": 0,
@@ -23,7 +29,14 @@ Return ONLY JSON in the following format:
     "carbs": 0,
     "fat": 0,
     "health_score": 0,
-    "suggestions": [],
-    "alternatives": []
+    "suggestions": [
+        "Suggestion 1",
+        "Suggestion 2",
+        "Suggestion 3"
+    ],
+    "alternatives": [
+        "Alternative 1",
+        "Alternative 2"
+    ]
 }}
 """
